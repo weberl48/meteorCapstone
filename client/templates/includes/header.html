@@ -1,0 +1,187 @@
+<template name="header">
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navigation">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="{{pathFor 'postsList'}}">WebDev DB</a>
+    </div>
+    <div class="collapse navbar-collapse" id="navigation">
+      <ul class="nav navbar-nav">
+        {{#if currentUser}}
+        <ul class="nav navbar-nav">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/import">Import tracks</a></li>
+                    <li><a href="/edit">Edit tracks</a></li>
+                </ul>
+        {{/if}}
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+                    {{#with currentUser.services.soundcloud}}
+                    <li><a href="{{permalink_url}}" target="_blank">{{username}}</a></li>
+                    <li><img src="{{avatar_url}}" height="50px"></li>
+                    {{/with}}
+                    {{> loginButtons }}
+                </ul>
+    </div>
+  </nav>
+</template<template name="masterLayout">
+    <!-- Static navbar -->
+    <nav class="navbar navbar-default navbar-static-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">Meteor-Soundcloud-App</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                {{#if currentUser}}
+                <ul class="nav navbar-nav">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/import">Import tracks</a></li>
+                    <li><a href="/edit">Edit tracks</a></li>
+                </ul>
+
+                {{/if}}
+                <ul class="nav navbar-nav navbar-right">
+                    {{#with currentUser.services.soundcloud}}
+                    <li><a href="{{permalink_url}}" target="_blank">{{username}}</a></li>
+                    <li><img src="{{avatar_url}}" height="50px"></li>
+                    {{/with}}
+                    {{> loginButtons }}
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div class="container">
+    {{> yield}}
+    </div> <!-- /container -->
+</template>
+
+<template name="home">
+    {{#if currentUser}}
+        {{#if userHasTracks}}
+            {{> trackGrid}}
+        {{else}}
+        <div class="jumbotron">
+            <h2>Welcome {{currentUser.profile.name}}!</h2>
+            <p>You're connected, thats really cool.</p>
+            {{#with currentUser.services.soundcloud}}
+            <div class="media">
+              <a class="pull-left" href="#">
+                <img class="media-object" src="{{avatar_url}}" alt="Profile avatar">
+              </a>
+              <div class="media-body">
+                <h4 class="media-heading"><a href="{{permalink_url}}">{{username}}</a></h4>
+                <p>from {{city}}, {{country}}</p>
+              </div>
+            </div>
+            <hr>
+            <div>
+                <p>Now it is time to import (some of) your liked tracks!</p>
+                <a href="{{pathFor 'importLikes'}}" class="btn btn-lg btn-primary" role="button">Lets go</a>
+            </div>
+            {{/with}}
+        </div>
+        {{/if}}
+    {{else}}
+        <p>You need to connect to Soundcloud to do anything cool here</p>
+    {{/if}}
+
+</template>
+
+<template name="_loginButtonsAdditionalLoggedInDropdownActions">
+    <button class="btn btn-default btn-block" id="soundcloud-login">Connect to Soundcloud</button>
+</template>
+
+<template name="importLikes">
+    <h2>Your recent likes</h2>
+    <p>Here are your most recent likes (up to 15). Select the tracks you want to import into this app, and then click the button at the bottom!</p>
+    <div class="list-group">
+        {{#each likes}}
+        <a class="like-track media list-group-item">
+          <a class="pull-left" href="{{permalink_url}}" target="_blank">
+            <img class="media-object" src="{{artwork_url}}" alt="Coverart" width="100px" height="100px">
+          </a>
+          <div class="media-body">
+            <h4 class="media-heading">{{title}}</h4>
+            <p class="description">{{description}}</p>
+          </div>
+        </a>
+        {{/each}}
+    </div>
+    {{#if selectedLikes.length}}
+    <button class="btn btn-success btn-block" id="import-likes"
+         data-toggle="modal" data-target="#confirmModal">
+         I'm finished! Import {{selectedLikes.length}} like(s).
+    </button>
+    {{/if}}
+
+    <!-- Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="confirmModalLabel">Confirm import - {{selectedLikes.length}} likes</h4>
+          </div>
+          <div class="modal-body">
+            {{#each selectedLikes}}
+            <ul class="list-unstyled">
+              <li>{{title}}</li>
+            </ul>
+            {{/each}}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" id="importLikesBtn" class="btn btn-primary">Import tracks</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</template>
+
+<template name="trackGrid">
+    <h2>Your tracks</h2>
+        {{#each tracks}}
+        <div class="player-container">
+          <iframe width="300" height="300" scrolling="no" frameborder="no" src="https://w.soundcloud.com/player/?visual=true&url={{uri}}&show_artwork=true&show_comments=false&color=e7e7e7"></iframe>
+        </div>
+        {{/each}}
+</template>
+
+<template name="edit">
+    <div class="list-group">
+        {{#each tracks}}
+        <div class="track media list-group-item">
+          <a class="pull-left" href="{{permalink_url}}" target="_blank">
+            <img class="media-object" src="{{artwork_url}}" alt="Coverart" width="100px" height="100px">
+          </a>
+          <div class="media-body">
+            <h4 class="media-heading" name="title" contenteditable="{{editing}}">
+                {{title}}
+            </h4>
+            <p class="description" name="description" contenteditable="{{editing}}">
+                {{description}}
+            </p>
+          </div>
+          <div class="btn-container">
+            <button class="btn btn-danger btn-sm edit-delete">
+                 Delete
+            </button>
+            <button class="btn btn-success btn-sm edit-save">
+                 {{#if editing}}Save{{else}}Edit{{/if}}
+            </button>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+</template>
